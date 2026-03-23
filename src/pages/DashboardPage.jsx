@@ -1,5 +1,6 @@
 import React from 'react'
 import Card from '../components/Card'
+import AIPanel from '../components/AIPanel'
 import { useModules } from '../hooks/useModules'
 
 function groupModules(modules) {
@@ -22,6 +23,8 @@ export default function DashboardPage() {
         <h2>System Dashboard</h2>
         <p className="muted">Live module registry grouped by system domain.</p>
       </div>
+
+      <AIPanel />
 
       {Object.keys(grouped).map((group) => (
         <section key={group} className="page">
