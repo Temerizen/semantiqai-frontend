@@ -1,17 +1,16 @@
-﻿import React from 'react'
+import React from 'react'
 import { NavLink } from 'react-router-dom'
-import { routeLabels } from '../lib/routes'
 
 const navItems = [
-  '/',
-  '/dashboard',
-  '/learning',
-  '/cognitive',
-  '/execution',
-  '/simulation',
-  '/creation',
-  '/pricing',
-  '/founder'
+  { path: '/', label: 'Home' },
+  { path: '/dashboard', label: 'Dashboard' },
+  { path: '/school', label: 'AI School' },
+  { path: '/cognitive-lab', label: 'Cognitive Lab' },
+  { path: '/execution', label: 'Execution Engine' },
+  { path: '/simulation', label: 'Reality Simulation' },
+  { path: '/creation', label: 'Infinite Creation' },
+  { path: '/pricing', label: 'Pricing' },
+  { path: '/founder', label: 'Founder Control' }
 ]
 
 export default function Sidebar() {
@@ -26,14 +25,14 @@ export default function Sidebar() {
       </div>
 
       <nav className="nav">
-        {navItems.map((path) => (
+        {navItems.map((item) => (
           <NavLink
-            key={path}
-            to={path}
+            key={item.path}
+            to={item.path}
             className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
-            end={path === '/'}
+            end={item.path === '/'}
           >
-            {routeLabels[path]}
+            {item.label}
           </NavLink>
         ))}
       </nav>
