@@ -38,6 +38,7 @@ export default function DashboardPage() {
                 key={mod.name}
                 title={mod.name}
                 desc={`Route: ${mod.route || "N/A"} • Blueprint: ${mod.blueprint || "Core module"}`}
+                to={mod.route}
               />
             ))}
           </div>
