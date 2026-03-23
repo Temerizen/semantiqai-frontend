@@ -108,7 +108,6 @@
         border-radius: 50%;
         background:
           radial-gradient(circle at 35% 35%, var(--accent-2), var(--accent));
-        filter: blur(0.2px);
         box-shadow: 0 0 35px rgba(124, 92, 255, 0.45);
       }
 
@@ -202,6 +201,12 @@
         font-size: 12px;
       }
 
+      .actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
       button {
         border: none;
         border-radius: 14px;
@@ -221,6 +226,12 @@
         opacity: 0.6;
         cursor: not-allowed;
         transform: none;
+      }
+
+      .secondary-btn {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text);
       }
 
       .status {
@@ -288,6 +299,20 @@
           align-items: flex-start;
           flex-direction: column;
         }
+
+        .composer-inner {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .actions {
+          width: 100%;
+          justify-content: space-between;
+        }
+
+        .actions button {
+          flex: 1;
+        }
       }
     </style>
   </head>
@@ -322,9 +347,12 @@
               ></textarea>
               <div class="controls">
                 <div class="hint">Enter to send • Shift+Enter for a new line</div>
+                <div class="actions">
+                  <button class="secondary-btn" id="clearBtn" type="button">Clear Chat</button>
+                  <button id="sendBtn" type="button">Send</button>
+                </div>
               </div>
             </div>
-            <button id="sendBtn" onclick="sendPrompt()">Send</button>
           </div>
           <div id="status" class="status"></div>
         </div>
@@ -333,10 +361,13 @@
 
     <script>
       const BACKEND_URL = "https://semantiqai-backend-production.up.railway.app/";
+      const STORAGE_KEY = "semantiqai_chat_history_v1";
+
       const messagesEl = document.getElementById("messages");
       const promptEl = document.getElementById("prompt");
       const statusEl = document.getElementById("status");
       const sendBtn = document.getElementById("sendBtn");
+      const clearBtn = document.getElementById("clearBtn");
       const emptyStateEl = document.getElementById("emptyState");
 
       function autoResizeTextarea() {
@@ -350,7 +381,41 @@
         }
       }
 
-      function addMessage(role, content, isHtml = false) {
+      function showEmptyStateIfNeeded() {
+        const messageCount = document.querySelectorAll(".message-row").length;
+        if (emptyStateEl) {
+          emptyStateEl.style.display = messageCount === 0 ? "grid" : "none";
+        }
+      }
+
+      function escapeHtml(str) {
+        return str
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function formatText(text) {
+        return escapeHtml(text).replace(/\n/g, "<br>");
+      }
+
+      function saveMessages() {
+        const all = [];
+        document.querySelectorAll(".message-row").forEach(row => {
+          const role = row.classList.contains("user") ? "user" : "assistant";
+          const body = row.querySelector(".message-body");
+          if (!body) return;
+          all.push({
+            role,
+            text: body.textContent || ""
+          });
+        });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+      }
+
+      function addMessage(role, content, options = {}) {
         hideEmptyState();
 
         const row = document.createElement("div");
@@ -364,10 +429,12 @@
         label.textContent = role === "user" ? "You" : "SemantiqAI";
 
         const body = document.createElement("div");
-        if (isHtml) {
+        body.className = "message-body";
+
+        if (options.html) {
           body.innerHTML = content;
         } else {
-          body.textContent = content;
+          body.innerHTML = formatText(content);
         }
 
         bubble.appendChild(label);
@@ -376,7 +443,30 @@
         messagesEl.appendChild(row);
         messagesEl.scrollTop = messagesEl.scrollHeight;
 
+        if (!options.skipSave) {
+          saveMessages();
+        }
+
         return { row, bubble, body };
+      }
+
+      function loadMessages() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+          saved.forEach(msg => {
+            addMessage(msg.role, msg.text, { skipSave: true });
+          });
+        } catch (error) {
+          console.error("Failed to load chat history:", error);
+        }
+        showEmptyStateIfNeeded();
+      }
+
+      function clearMessages() {
+        document.querySelectorAll(".message-row").forEach(el => el.remove());
+        localStorage.removeItem(STORAGE_KEY);
+        showEmptyStateIfNeeded();
+        setStatus("Chat cleared.");
       }
 
       function setStatus(message, isError = false) {
@@ -386,6 +476,7 @@
 
       async function sendPrompt() {
         const prompt = promptEl.value.trim();
+
         if (!prompt) {
           setStatus("Please enter a prompt.", true);
           return;
@@ -396,11 +487,12 @@
         autoResizeTextarea();
         setStatus("");
         sendBtn.disabled = true;
+        clearBtn.disabled = true;
 
         const thinkingMessage = addMessage(
           "assistant",
           '<div class="typing"><span></span><span></span><span></span></div>',
-          true
+          { html: true, skipSave: true }
         );
 
         try {
@@ -418,26 +510,34 @@
             const data = JSON.parse(text);
 
             if (!response.ok) {
-              thinkingMessage.body.textContent = data.error || "Something went wrong.";
+              thinkingMessage.body.innerHTML = formatText(data.error || "Something went wrong.");
               setStatus("Request returned an error.", true);
+              saveMessages();
               return;
             }
 
-            thinkingMessage.body.textContent = data.response || "No response returned.";
+            thinkingMessage.body.innerHTML = formatText(data.response || "No response returned.");
             setStatus("");
+            saveMessages();
           } catch {
-            thinkingMessage.body.textContent = "Backend returned non-JSON:\n\n" + text;
+            thinkingMessage.body.innerHTML = formatText("Backend returned non-JSON:\n\n" + text);
             setStatus("Backend response format was invalid.", true);
+            saveMessages();
           }
         } catch (error) {
-          thinkingMessage.body.textContent = "Request failed: " + error.message;
+          thinkingMessage.body.innerHTML = formatText("Request failed: " + error.message);
           setStatus("Network request failed.", true);
+          saveMessages();
         } finally {
           sendBtn.disabled = false;
+          clearBtn.disabled = false;
           messagesEl.scrollTop = messagesEl.scrollHeight;
           promptEl.focus();
         }
       }
+
+      sendBtn.addEventListener("click", sendPrompt);
+      clearBtn.addEventListener("click", clearMessages);
 
       promptEl.addEventListener("input", autoResizeTextarea);
 
@@ -449,6 +549,7 @@
       });
 
       autoResizeTextarea();
+      loadMessages();
     </script>
   </body>
 </html>
