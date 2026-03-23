@@ -28,39 +28,43 @@
       style="margin-top: 24px; padding: 16px; background: #f4f4f4; white-space: pre-wrap; border-radius: 8px;"
     >Response will appear here...</pre>
 
-    <script>
-      async function sendPrompt() {
-        const prompt = document.getElementById("prompt").value;
-        const output = document.getElementById("output");
+   <script>
+  async function sendPrompt() {
+    const prompt = document.getElementById("prompt").value;
+    const output = document.getElementById("output");
 
-        if (!prompt.trim()) {
-          output.textContent = "Please enter a prompt.";
+    if (!prompt.trim()) {
+      output.textContent = "Please enter a prompt.";
+      return;
+    }
+
+    output.textContent = "Thinking...";
+
+    try {
+      const response = await fetch("https://semantiqai-backend-production.up.railway.app/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ prompt })
+      });
+
+      const text = await response.text();
+
+      try {
+        const data = JSON.parse(text);
+        if (!response.ok) {
+          output.textContent = data.error || "Something went wrong.";
           return;
         }
-
-        output.textContent = "Thinking...";
-
-        try {
-          const response = await fetch("semantiqai-backend-production.up.railway.app", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ prompt })
-          });
-
-          const data = await response.json();
-
-          if (!response.ok) {
-            output.textContent = data.error || "Something went wrong.";
-            return;
-          }
-
-          output.textContent = data.response || "No response returned.";
-        } catch (error) {
-          output.textContent = "Request failed: " + error.message;
-        }
+        output.textContent = data.response || "No response returned.";
+      } catch {
+        output.textContent = "Backend returned non-JSON:\n\n" + text;
       }
-    </script>
+    } catch (error) {
+      output.textContent = "Request failed: " + error.message;
+    }
+  }
+</script>
   </body>
 </html>
