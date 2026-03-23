@@ -1,11 +1,10 @@
-﻿import React from 'react'
+import React from "react"
 
-export default function Card({ title, desc, children }) {
+export default function Card({ title, desc }) {
   return (
     <div className="card">
-      {title ? <h3>{title}</h3> : null}
-      {desc ? <p className="muted">{desc}</p> : null}
-      {children}
+      <h3>{title}</h3>
+      <p>{desc}</p>
     </div>
   )
 }
