@@ -1,37 +1,26 @@
-﻿const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:5000'
+export const API_BASE = "https://semantiqai-backend-production.up.railway.app"
 
-async function request(path, method = 'GET', body = null, founderKey = null) {
-  const headers = {
-    'Content-Type': 'application/json'
-  }
-
-  if (founderKey) {
-    headers['x-founder-key'] = founderKey
-  }
-
-  const res = await fetch(API_BASE + path, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : null
+export async function sendPrompt(prompt) {
+  const response = await fetch(`${API_BASE}/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ prompt })
   })
 
-  const data = await res.json()
+  const text = await response.text()
 
-  if (!data.ok) {
+  try {
+    const data = JSON.parse(text)
+    if (!response.ok) {
+      throw new Error(data.error || "Request failed.")
+    }
     return data
+  } catch (err) {
+    if (!response.ok) {
+      throw new Error(text || "Backend returned invalid response.")
+    }
+    throw new Error("Backend returned non-JSON response.")
   }
-
-  return data
-}
-
-export function apiGet(path) {
-  return request(path, 'GET')
-}
-
-export function apiPost(path, body) {
-  return request(path, 'POST', body)
-}
-
-export function founderPost(path, body, key) {
-  return request(path, 'POST', body, key)
 }
