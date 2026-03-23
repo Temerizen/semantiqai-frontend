@@ -24,7 +24,6 @@ export async function apiGet(path = "/") {
       "Content-Type": "application/json"
     }
   })
-
   return parseResponse(response)
 }
 
@@ -36,7 +35,22 @@ export async function apiPost(path = "/", body = {}) {
     },
     body: JSON.stringify(body)
   })
+  return parseResponse(response)
+}
 
+export async function founderGet(path = "/", founderKey = "") {
+  const headers = {
+    "Content-Type": "application/json"
+  }
+
+  if (founderKey) {
+    headers["x-founder-key"] = founderKey
+  }
+
+  const response = await fetch(`${API_BASE}${path}`, {
+    method: "GET",
+    headers
+  })
   return parseResponse(response)
 }
 
@@ -54,6 +68,5 @@ export async function founderPost(path = "/", body = {}, founderKey = "") {
     headers,
     body: JSON.stringify(body)
   })
-
   return parseResponse(response)
 }
