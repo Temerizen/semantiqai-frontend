@@ -1,4 +1,4 @@
-﻿import React from 'react'
+import React from 'react'
 import Card from '../components/Card'
 import { useModules } from '../hooks/useModules'
 
@@ -34,7 +34,7 @@ export default function DashboardPage() {
               <Card
                 key={mod.name}
                 title={mod.name}
-                desc={Route:  • Blueprint: }
+                desc={`Route: ${mod.route || "N/A"} • Blueprint: ${mod.blueprint || "Core module"}`}
               />
             ))}
           </div>
