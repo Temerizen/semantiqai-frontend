@@ -1,14 +1,6 @@
 export const API_BASE = "https://semantiqai-backend-production.up.railway.app"
 
-export async function sendPrompt(prompt) {
-  const response = await fetch(`${API_BASE}/`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ prompt })
-  })
-
+async function parseResponse(response) {
   const text = await response.text()
 
   try {
@@ -23,4 +15,27 @@ export async function sendPrompt(prompt) {
     }
     throw new Error("Backend returned non-JSON response.")
   }
+}
+
+export async function apiGet(path = "/") {
+  const response = await fetch(`${API_BASE}${path}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json"
+    }
+  })
+
+  return parseResponse(response)
+}
+
+export async function apiPost(path = "/", body = {}) {
+  const response = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
+  })
+
+  return parseResponse(response)
 }
