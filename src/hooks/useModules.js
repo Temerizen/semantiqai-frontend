@@ -1,50 +1,19 @@
-export const API_BASE = "https://semantiqai-backend-production.up.railway.app"
+import { useEffect, useState } from "react"
 
-export async function apiGet(path = "") {
-  const response = await fetch(`${API_BASE}${path}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json"
-    }
-  })
+export function useModules() {
+  const [modules, setModules] = useState([
+    { name: "AI School", route: "/school", group: "learning", blueprint: "Education system" },
+    { name: "Cognitive Lab", route: "/cognitive-lab", group: "cognitive", blueprint: "Mental training" },
+    { name: "Execution Engine", route: "/execution", group: "execution", blueprint: "Goals and workflows" },
+    { name: "Reality Simulation", route: "/simulation", group: "simulation", blueprint: "What-if analysis" },
+    { name: "Infinite Creation", route: "/creation", group: "creation", blueprint: "Creative generation" },
+    { name: "Founder Control", route: "/founder", group: "founder", blueprint: "Private founder tools" }
+  ])
 
-  const text = await response.text()
+  useEffect(() => {
+    // Placeholder hook for now.
+    // Later this can fetch module registry from backend.
+  }, [])
 
-  try {
-    const data = JSON.parse(text)
-    if (!response.ok) {
-      throw new Error(data.error || "GET request failed.")
-    }
-    return data
-  } catch (err) {
-    if (!response.ok) {
-      throw new Error(text || "Backend returned invalid response.")
-    }
-    throw new Error("Backend returned non-JSON response.")
-  }
-}
-
-export async function apiPost(path = "/", body = {}) {
-  const response = await fetch(`${API_BASE}${path}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(body)
-  })
-
-  const text = await response.text()
-
-  try {
-    const data = JSON.parse(text)
-    if (!response.ok) {
-      throw new Error(data.error || "POST request failed.")
-    }
-    return data
-  } catch (err) {
-    if (!response.ok) {
-      throw new Error(text || "Backend returned invalid response.")
-    }
-    throw new Error("Backend returned non-JSON response.")
-  }
+  return modules
 }
