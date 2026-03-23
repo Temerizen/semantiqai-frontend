@@ -1,12 +1,12 @@
-import React from 'react'
-import Card from '../components/Card'
-import AIPanel from '../components/AIPanel'
-import { useModules } from '../hooks/useModules'
+import React from "react"
+import Card from "../components/Card"
+import AIPanel from "../components/AIPanel"
+import { useModules } from "../hooks/useModules"
 
 function groupModules(modules) {
   const grouped = {}
   for (const mod of modules) {
-    const group = mod.group || 'general'
+    const group = mod.group || "general"
     if (!grouped[group]) grouped[group] = []
     grouped[group].push(mod)
   }
