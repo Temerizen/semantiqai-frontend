@@ -39,3 +39,21 @@ export async function apiPost(path = "/", body = {}) {
 
   return parseResponse(response)
 }
+
+export async function founderPost(path = "/", body = {}, founderKey = "") {
+  const headers = {
+    "Content-Type": "application/json"
+  }
+
+  if (founderKey) {
+    headers["x-founder-key"] = founderKey
+  }
+
+  const response = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body)
+  })
+
+  return parseResponse(response)
+}
